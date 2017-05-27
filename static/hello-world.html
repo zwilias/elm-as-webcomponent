@@ -2,32 +2,44 @@
 <script>
 (function() {
     // Creates an object based in the HTML Element prototype
-    var element = Object.create(HTMLElement.prototype);
-    element.app = null;
+    class ElmElement extends HTMLElement {
+        constructor() {
+            super();
 
-    // Fires when an instance of the element is created
-    element.createdCallback = function() {
-        var content = document.createElement('div');
-        var root = content.attachShadow({mode: 'open'});
+            this.app = null;
+            this.root = null;
 
-        this.app = Elm.Main.embed(root);
-        this.appendChild(content);
-    };
+            this.createdCallback = this.createdCallback.bind(this);
+        }
 
-    // Fires when an instance was inserted into the document
-    element.attachedCallback = function() {
-        console.log("attached", arguments);
-    };
+        createdCallback() {
+            this.root = document.createElement('div');
+            const shadow = this.root.attachShadow({mode: 'open'});
 
-    // Fires when an instance was removed from the document
-    element.detachedCallback = function() {};
+            const attrs = {};
 
-    // Fires when an attribute was added, removed, or updated
-    element.attributeChangedCallback = function(attr, oldVal, newVal) {};
+            for (let i = 0; i < this.attributes.length; i++) {
+                attrs[this.attributes[i].name] = this.attributes[i].value;
+            }
 
+            this.app = Elm.Main.embed(shadow, attrs);
+
+            this.appendChild(this.root);
+        }
+
+        attachedCallback() {
+            console.log('attached', arguments);
+        }
+
+        detachedCallback() {
+            console.log('detached', arguments);
+        }
+
+        attributeChangedCallback() {
+            console.log('changes', arguments);
+        }
+    }
     // Registers custom element
-    document.registerElement('hello-world', {
-        prototype: element
-    });
+    document.registerElement('hello-world', ElmElement);
 }());
 </script>
